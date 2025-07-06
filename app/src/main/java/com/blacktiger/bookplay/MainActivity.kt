@@ -1,5 +1,6 @@
 package com.blacktiger.bookplay
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import androidx.activity.enableEdgeToEdge
@@ -13,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.blacktiger.bookplay.adapter.BookListAdapter
 import com.blacktiger.bookplay.data.Book
 import com.blacktiger.bookplay.data.BookDatabase
+import com.blacktiger.bookplay.ui.PdfReaderActivity
 import com.blacktiger.bookplay.util.PdfUtils
 import kotlinx.coroutines.launch
 
@@ -24,15 +26,23 @@ class MainActivity : AppCompatActivity() {
     private val pdfPicker =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
             uri?.let {
+                // ✅ 권한 영속화
+                contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+
                 val title = uri.lastPathSegment ?: "Untitled"
                 val thumbnailPath = PdfUtils.generateThumbnail(this, uri)
                 val book = Book(uri.toString(), title, thumbnailPath)
+
                 lifecycleScope.launch {
                     db.bookDao().insert(book)
                     loadBooks()
                 }
             }
         }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,8 +52,12 @@ class MainActivity : AppCompatActivity() {
 
         val recycler = findViewById<RecyclerView>(R.id.recyclerView)
         recycler.layoutManager = LinearLayoutManager(this)
-        adapter = BookListAdapter(bookList) {
-            // TODO: 화면 이동 구현
+        adapter = BookListAdapter(bookList) { book ->
+            val intent = Intent(this@MainActivity, PdfReaderActivity::class.java).apply {
+                putExtra("bookUri", book.uri)
+                flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+            }
+            startActivity(intent)
         }
         recycler.adapter = adapter
 

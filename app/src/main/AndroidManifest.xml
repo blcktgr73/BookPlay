@@ -20,6 +20,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- ✅ PdfReaderActivity 등록 -->
+        <activity android:name=".ui.PdfReaderActivity" />
     </application>
 
 </manifest>
