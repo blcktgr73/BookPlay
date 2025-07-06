@@ -1,0 +1,45 @@
+# === Android Studio & IntelliJ ===
+*.iml
+.idea/
+.gradle/
+.kotlin/
+local.properties
+*.log
+captures/
+.externalNativeBuild/
+.cxx
+
+# === Build Files ===
+build/
+app/build/
+*/build/
+
+# === OS Generated Files ===
+.DS_Store
+Thumbs.db
+
+# === Signing keys ===
+*.jks
+*.keystore
+
+# === Kotlin/Java Compilation ===
+*.class
+
+# === Log/Crash Reports ===
+*.log
+
+# === Jetpack Compose Preview Caches ===
+.android/
+
+# === APK / AAB Output ===
+*.apk
+*.ap_
+*.aab
+
+# === Others (optional) ===
+*.swp
+*.swo
+*.tmp
+
+# === Firebase / Google Services (if used) ===
+google-services.json
