@@ -66,6 +66,10 @@ dependencies {
     // RecyclerView
     implementation("androidx.recyclerview:recyclerview:1.3.2")
 
+    // PDF
+    implementation("com.tom-roush:pdfbox-android:2.0.27.0")
+    //implementation("com.github.TomRoush:PdfBox-Android:2.0.27.0")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

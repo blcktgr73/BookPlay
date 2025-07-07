@@ -40,6 +40,13 @@ class MainActivity : AppCompatActivity() {
                     db.bookDao().insert(book)
                     loadBooks()
                 }
+
+                // ✅ PDF 리더로 이동 추가
+                val intent = Intent(this, PdfReaderActivity::class.java).apply {
+                    putExtra("bookUri", uri.toString())
+                    flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                }
+                startActivity(intent)
             }
         }
 

@@ -1,13 +1,39 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/pdfRootLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!-- PDF 표시용 ImageView -->
     <ImageView
         android:id="@+id/pdfImageView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:clickable="true"
-        android:focusable="true"
         android:scaleType="fitCenter" />
 
-</FrameLayout>
+    <!-- TTS 제어 버튼 영역 -->
+    <LinearLayout
+        android:id="@+id/ttsControls"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="16dp"
+        android:orientation="horizontal"
+        android:background="@android:color/transparent">
+
+        <Button
+            android:id="@+id/playTtsBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🔊 재생" />
+
+        <Button
+            android:id="@+id/stopTtsBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="⏹ 정지"
+            android:layout_marginStart="8dp" />
+    </LinearLayout>
+
+</RelativeLayout>

@@ -5,11 +5,19 @@ import android.graphics.pdf.PdfRenderer
 import android.net.Uri
 import android.os.Bundle
 import android.os.ParcelFileDescriptor
+import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
+import android.widget.Button
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import com.blacktiger.bookplay.R
 import com.blacktiger.bookplay.util.OnSwipeTouchListener
 import java.io.IOException
+import java.util.Locale
+import android.content.Context
+import com.tom_roush.pdfbox.pdmodel.PDDocument
+import com.tom_roush.pdfbox.text.PDFTextStripper
+
 
 class PdfReaderActivity : AppCompatActivity() {
 
@@ -20,6 +28,12 @@ class PdfReaderActivity : AppCompatActivity() {
 
     private var bookUri: Uri? = null
     private var currentPageIndex = 0
+
+    // TTS 관련
+    private lateinit var tts: TextToSpeech
+    private var paragraphs: List<String> = listOf()
+    private var paragraphIndex = 0
+    private var isReading = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,6 +59,58 @@ class PdfReaderActivity : AppCompatActivity() {
                 showPage(currentPageIndex - 1)
             }
         })
+
+        tts = TextToSpeech(this) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                tts.language = Locale.KOREAN
+                setupTtsListener()
+            }
+        }
+
+        findViewById<Button>(R.id.playTtsBtn).setOnClickListener {
+            val text = extractTextFromPdf(this, bookUri!!, currentPageIndex)
+            startParagraphTts(text)
+        }
+
+        findViewById<Button>(R.id.stopTtsBtn).setOnClickListener {
+            stopTts()
+        }
+    }
+
+    private fun setupTtsListener() {
+        tts.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+            override fun onStart(utteranceId: String?) {}
+            override fun onError(utteranceId: String?) {}
+
+            override fun onDone(utteranceId: String?) {
+                paragraphIndex++
+                runOnUiThread {
+                    speakNextParagraph()
+                }
+            }
+        })
+    }
+
+    private fun startParagraphTts(text: String) {
+        paragraphs = text.split(Regex("\n{2,}|\r\n\r\n"))
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+
+        paragraphIndex = 0
+        isReading = true
+        speakNextParagraph()
+    }
+
+    private fun speakNextParagraph() {
+        if (!isReading || paragraphIndex >= paragraphs.size) return
+
+        val paragraph = paragraphs[paragraphIndex]
+        tts.speak(paragraph, TextToSpeech.QUEUE_FLUSH, null, "paragraph_$paragraphIndex")
+    }
+
+    private fun stopTts() {
+        isReading = false
+        if (tts.isSpeaking) tts.stop()
     }
 
     private fun openRenderer() {
@@ -78,6 +144,14 @@ class PdfReaderActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+
+        // TTS 정리
+        if (::tts.isInitialized) {
+            tts.stop()
+            tts.shutdown()
+        }
+
+        // PDF 관련 정리
         currentPage.closeIfInitialized()
         pdfRenderer.close()
         parcelFileDescriptor.close()
@@ -86,4 +160,24 @@ class PdfReaderActivity : AppCompatActivity() {
     private fun PdfRenderer.Page?.closeIfInitialized() {
         this?.close()
     }
+
+    private fun extractTextFromPdf(context: Context, uri: Uri, pageIndex: Int): String {
+        return try {
+            val inputStream = context.contentResolver.openInputStream(uri)
+            val document = PDDocument.load(inputStream)
+
+            val stripper = PDFTextStripper().apply {
+                startPage = pageIndex + 1  // PdfBox는 1-based 인덱스 사용
+                endPage = pageIndex + 1
+            }
+
+            val text = stripper.getText(document)
+            document.close()
+            text
+        } catch (e: Exception) {
+            e.printStackTrace()
+            ""
+        }
+    }
+
 }
