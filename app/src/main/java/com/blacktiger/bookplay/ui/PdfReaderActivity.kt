@@ -92,14 +92,35 @@ class PdfReaderActivity : AppCompatActivity() {
     }
 
     private fun startParagraphTts(text: String) {
-        paragraphs = text.split(Regex("\n{2,}|\r\n\r\n"))
-            .map { it.trim() }
-            .filter { it.isNotEmpty() }
+        // 줄 단위로 자르고 이어붙이기
+        val rawLines = text.lines().map { it.trim() }.filter { it.isNotEmpty() }
 
+        val paragraphBuilder = StringBuilder()
+        val refinedParagraphs = mutableListOf<String>()
+
+        for (line in rawLines) {
+            paragraphBuilder.append(line)
+
+            // 문장 종료 부호로 문단 종료 추정
+            if (line.endsWith(".") || line.endsWith("!") || line.endsWith("?") || paragraphBuilder.length > 300) {
+                refinedParagraphs.add(paragraphBuilder.toString().trim())
+                paragraphBuilder.clear()
+            } else {
+                paragraphBuilder.append(" ")  // 줄 간 연결
+            }
+        }
+
+        // 마지막 남은 줄 처리
+        if (paragraphBuilder.isNotBlank()) {
+            refinedParagraphs.add(paragraphBuilder.toString().trim())
+        }
+
+        paragraphs = refinedParagraphs
         paragraphIndex = 0
         isReading = true
         speakNextParagraph()
     }
+
 
     private fun speakNextParagraph() {
         if (!isReading || paragraphIndex >= paragraphs.size) return
