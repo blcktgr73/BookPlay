@@ -1,8 +1,8 @@
-<?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/pdfRootLayout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
 
     <!-- PDF 표시용 ImageView -->
     <ImageView
@@ -11,18 +11,31 @@
         android:layout_height="match_parent"
         android:scaleType="fitCenter" />
 
-    <!-- TTS 제어 버튼 영역 -->
+    <!-- 페이지 수 표시 (상단 중앙) -->
+    <TextView
+        android:id="@+id/pageIndicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="1 / 100"
+        android:textColor="@android:color/white"
+        android:textSize="16sp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="24dp"
+        android:background="#80000000"
+        android:padding="6dp"
+        android:elevation="4dp" />
+
+    <!-- TTS 제어 버튼 영역 (하단 중앙) -->
     <LinearLayout
         android:id="@+id/ttsControls"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="24dp"
         android:orientation="horizontal"
-        android:background="@android:color/transparent"
-        android:paddingBottom="24dp"
-        android:fitsSystemWindows="true">
+        android:background="@android:color/transparent">
 
         <Button
             android:id="@+id/playTtsBtn"

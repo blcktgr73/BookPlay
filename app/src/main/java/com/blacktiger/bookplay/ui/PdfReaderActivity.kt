@@ -16,6 +16,8 @@ import java.io.IOException
 import java.util.Locale
 import android.content.Context
 import android.util.Log
+import android.widget.TextView
+import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import com.blacktiger.bookplay.data.BookDatabase
 import com.tom_roush.pdfbox.pdmodel.PDDocument
@@ -25,6 +27,7 @@ import kotlinx.coroutines.launch
 
 class PdfReaderActivity : AppCompatActivity() {
 
+    private lateinit var pageIndicator: TextView
     private lateinit var pdfRenderer: PdfRenderer
     private var currentPage: PdfRenderer.Page? = null
     private lateinit var parcelFileDescriptor: ParcelFileDescriptor
@@ -52,6 +55,8 @@ class PdfReaderActivity : AppCompatActivity() {
             finish() // 잘못된 접근일 경우 종료
             return
         }
+
+        pageIndicator = findViewById(R.id.pageIndicator)
 
         openRenderer()
         showPage(currentPageIndex)
@@ -129,10 +134,28 @@ class PdfReaderActivity : AppCompatActivity() {
 
 
     private fun speakNextParagraph() {
-        if (!isReading || paragraphIndex >= paragraphs.size) return
+        if (!isReading) return
 
-        val paragraph = paragraphs[paragraphIndex]
-        tts.speak(paragraph, TextToSpeech.QUEUE_FLUSH, null, "paragraph_$paragraphIndex")
+        if (paragraphIndex < paragraphs.size) {
+            val paragraph = paragraphs[paragraphIndex]
+            tts.speak(paragraph, TextToSpeech.QUEUE_FLUSH, null, "paragraph_$paragraphIndex")
+        } else {
+            // 모든 문단 낭독 완료 시 다음 페이지로 이동
+            if (currentPageIndex < pdfRenderer.pageCount - 1) {
+                currentPageIndex++
+                showPage(currentPageIndex)
+
+                // 다음 페이지 텍스트 추출 및 낭독 재시작
+                val nextText = extractTextFromPdf(this, bookUri!!, currentPageIndex)
+                startParagraphTts(nextText)
+            } else {
+                // 마지막 페이지까지 완료 → 낭독 종료
+                isReading = false
+                runOnUiThread {
+                    Toast.makeText(this, "모든 페이지 낭독을 완료했습니다.", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 
     private fun stopTts() {
@@ -166,6 +189,9 @@ class PdfReaderActivity : AppCompatActivity() {
         currentPage!!.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
 
         imageView.setImageBitmap(bitmap)
+
+        // 페이지 수 표시
+        pageIndicator.text = "${index + 1} / ${pdfRenderer.pageCount}"
 
         // 책 progress 저장 (코루틴 사용)
         lifecycleScope.launch {
