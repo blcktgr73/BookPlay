@@ -15,8 +15,12 @@ import com.blacktiger.bookplay.util.OnSwipeTouchListener
 import java.io.IOException
 import java.util.Locale
 import android.content.Context
+import android.util.Log
+import androidx.lifecycle.lifecycleScope
+import com.blacktiger.bookplay.data.BookDatabase
 import com.tom_roush.pdfbox.pdmodel.PDDocument
 import com.tom_roush.pdfbox.text.PDFTextStripper
+import kotlinx.coroutines.launch
 
 
 class PdfReaderActivity : AppCompatActivity() {
@@ -41,6 +45,8 @@ class PdfReaderActivity : AppCompatActivity() {
 
         imageView = findViewById(R.id.pdfImageView)
         bookUri = intent.getStringExtra("bookUri")?.let { Uri.parse(it) }
+        currentPageIndex = intent.getIntExtra("bookProgress", 0)  // ← 추가
+        Log.d("PdfReader", "🔄 복원할 페이지: $currentPageIndex")
 
         if (bookUri == null) {
             finish() // 잘못된 접근일 경우 종료
@@ -148,8 +154,9 @@ class PdfReaderActivity : AppCompatActivity() {
     private fun showPage(index: Int) {
         if (index < 0 || index >= pdfRenderer.pageCount) return
 
-        currentPage.closeIfInitialized()
+        Log.d("PdfReader", "📘 페이지 표시: $index")
 
+        currentPage.closeIfInitialized()
         currentPageIndex = index
         currentPage = pdfRenderer.openPage(index)
 
@@ -160,7 +167,14 @@ class PdfReaderActivity : AppCompatActivity() {
 
         imageView.setImageBitmap(bitmap)
 
-        // TODO: 책 progress 저장 (DB 연동 시 적용)
+        // 책 progress 저장 (코루틴 사용)
+        lifecycleScope.launch {
+            Log.d("PdfReader", "💾 저장 중: $index → ${bookUri.toString()}")
+
+            val uriStr = bookUri.toString()
+            val db = BookDatabase.getInstance(applicationContext)
+            db.bookDao().updateProgress(uriStr, index)
+        }
     }
 
     override fun onDestroy() {
