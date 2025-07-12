@@ -49,11 +49,12 @@ com.blacktiger.bookplay
 - [ ] 7단계	설정 화면에서 TTS 방식 선택
 
 ## 📸 스크린샷
-추후 앱 UI 캡처 이미지 삽입 예정
-책 목록(MainActivity)
+▶ [Facebook Video](https://www.facebook.com/share/v/162RyBjF7A/)
+
+▶ 책 목록(MainActivity)
 ![Main](./screenshots/Screenshot_20250710_110316_BookPlay.jpg)
 
-PDF Reader (PdfReaderActivity)
+▶ PDF Reader (PdfReaderActivity)
 ![Reader](./screenshots/Screenshot_20250710_110323_BookPlay.jpg)
 
 ## 📦 빌드 방법
